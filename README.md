@@ -81,10 +81,20 @@ Experience currently needs presentation only, so there are no empty layer folder
 
 Tests cover action IDs/metadata, invalid contracts, engine lifecycle and subscription
 cleanup, quiz fixtures, arbitrary option IDs, stable mapping, keyboard/button input,
-StrictMode and observable UI behavior. Playground never confirms or submits answers.
+StrictMode and observable UI behavior. The mock game never confirms or submits
+answers; experience feedback snapshots are changed manually in the preview.
 Production builds disable the playground and its navigation links.
 
-Next: MediaPipe/classifiers, Canvas experience, game/hold/randomizer, Quiz API, then
+The [experience layout](apps/web/features/experience/README.md) now presents a
+responsive camera placeholder, question, four answer cards and illustrated pose
+instructions before the development controls. It uses the existing mock runtime;
+the Canvas skeleton preview uses eight hand-authored landmark samples with mirror
+and partial-body controls. Experience simulation also covers camera/tracking errors,
+manual progress, confirmation/submission feedback and optional sound, without changing
+the game store or making submission requests. See [Experience QA](docs/EXPERIENCE_QA.md).
+Live video and model-driven landmarks remain future work.
+
+Next: MediaPipe/classifiers, camera alignment, game/hold/randomizer, Quiz API, then
 QA/performance. No FPS or inference latency has been benchmarked.
 
 Read [Architecture](docs/ARCHITECTURE.md), [Contracts](docs/MODULE_CONTRACTS.md),

@@ -14,11 +14,23 @@ eight geometry classifiers, tracking status and smoothing. Agree left/right and 
 semantics before implementation. Test allowed synthetic/recorded data, partial poses and
 permission failure. No model, SDK dependency or inference exists in Phase 0.
 
-## Phase 2 — Canvas & Visual Experience — TODO / Dũng
+## Phase 2 — Canvas & Visual Experience — IN PROGRESS / Dũng
 
 Video viewport, real skeleton overlay, feedback effects, hold ring, audio, responsive
 gameplay and accessibility. Keep RAF drawing outside broad React state subscriptions.
-Current components are presentation boundaries, not working camera/Canvas implementations.
+Experience subphase 1 (layout) is implemented in the development playground:
+props-driven gameplay screen, camera placeholder, question and four answer cards,
+eight action illustrations/instructions, responsive layout and separate development controls.
+Experience subphase 2 adds Canvas rendering from eight hand-authored landmark
+fixtures, mirroring, partial input, resize/display-density handling and tracking-loss
+clearing. The mock pose engine still emits empty landmarks; samples are presentation
+fixtures only. Experience subphases 3–4 add independent view-state simulation,
+manual progress, a hold ring, textual/visual feedback and opt-in Web Audio cues.
+Subphase 5 adds accessibility support and automated reset/resource/integration checks.
+Real-browser layout, audio and assistive-technology checks are still pending;
+see [Experience QA](EXPERIENCE_QA.md). Real video alignment, camera/model integration
+and real game-state wiring remain TODO.
+See [Experience](../apps/web/features/experience/README.md) for preview and integration details.
 
 ## Phase 3 — Game State / Randomizer / Hold Detection — TODO / Bình
 

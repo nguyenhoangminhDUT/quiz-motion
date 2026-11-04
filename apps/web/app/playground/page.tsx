@@ -9,12 +9,12 @@ export default function PlaygroundPage() {
     <div className="shell">
       <SiteHeader playground />
       <main className="playground-main">
-        <p className="eyebrow">DEVELOPER WORKSPACE / PHASE 0</p>
+        <p className="eyebrow">EXPERIENCE WORKSPACE / LAYOUT PREVIEW</p>
         <div className="playground-title">
           <h1>Development Playground</h1>
           <p>
-            Inspect the connection between pose events, shared contracts and
-            presentation.
+            Explore the gameplay layout with sample questions and simulated
+            movement. No camera setup needed.
           </p>
         </div>
         <ApiHealthIndicator />

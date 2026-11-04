@@ -78,11 +78,23 @@ and HTTP processing must use session/question generations to discard stale work.
 
 ## Experience structure adjustment
 
-Experience currently has only presentation components: CameraViewport accepts an
-overlay slot, SkeletonOverlay explicitly marks rendering TODO, HoldProgress presents
-an externally supplied value, and ActionInstruction reads metadata. There is no reason
-to create empty domain/application/infrastructure folders. Add them when a real rule,
-use case or browser adapter needs them. App routes remain thin; composition owns wiring.
+Experience keeps its UI in presentation. GameplayScreen receives
+questions, action mapping, detected action, progress and navigation through props;
+PlaygroundView supplies these from the existing mock runtime. CameraViewport accepts an
+overlay slot. SkeletonOverlay now renders indexed landmarks on Canvas with refs,
+coalesced RAF invalidation, ResizeObserver, display-density sizing and explicit cleanup.
+SampleSkeletonPreview supplies eight presentation-only fixtures without changing
+the mock pose engine or game rules. Its initial Y-Pose is not a detection event.
+HoldProgress presents an externally supplied value, and ActionInstruction reads metadata.
+The composition-only experience reducer simulates view snapshots without game-store
+writes, clocks, gateway calls or business-state transitions. A full preview ring
+does not confirm an answer. Actual and simulated state remain separately visible.
+
+The application FeedbackAudio port defines optional cues; WebAudioFeedback is its
+browser adapter. Composition creates/disposes adapters in effects, enables audio
+only from a user gesture and suppresses repeated or stale cues. Muting stops voices;
+dispose also closes the context and invalidates pending enable calls. Presentation
+imports no concrete audio adapter. App routes remain thin; composition owns wiring.
 
 ## Future adapters and constraints
 
@@ -92,7 +104,7 @@ stop/dispose release camera tracks, RAF callbacks and model resources. Handle pe
 failure, unavailable camera, partial landmarks and lost tracking. Mirror only display;
 define left/right by the player's anatomical side. Frames are not uploaded or stored by default.
 
-Dũng adds Canvas/audio adapters when used. Keep high-frequency landmarks and drawing
+Dũng owns Canvas/audio resources and their cleanup. Keep high-frequency landmarks and drawing
 outside broad React/Zustand updates. Measure inference and rendering independently.
 
 Bình adds pure randomization with an injected RNG, continuous hold logic using the

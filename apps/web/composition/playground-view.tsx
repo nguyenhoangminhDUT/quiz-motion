@@ -1,19 +1,20 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useReducer, useState } from 'react';
 import { useStore } from 'zustand';
 import {
   ACTION_IDS,
   ACTION_DEFINITIONS,
   type ActionId,
 } from '@action-quiz/contracts';
-import {
-  ActionInstruction,
-  CameraViewport,
-  HoldProgress,
-  SkeletonOverlay,
-} from '@/features/experience';
+import { GameplayScreen, SampleSkeletonPreview } from '@/features/experience';
 import type { PlaygroundDebug, PlaygroundRuntime } from './create-playground';
+import {
+  experiencePreviewReducer,
+  INITIAL_EXPERIENCE_PREVIEW,
+} from './experience-preview';
+import { ExperiencePreviewControls } from './experience-preview-controls';
+import { usePreviewAudio } from './use-preview-audio';
 
 export function PlaygroundView({ runtime }: { runtime: PlaygroundRuntime }) {
   const state = useStore(runtime.gameStore);
@@ -22,15 +23,35 @@ export function PlaygroundView({ runtime }: { runtime: PlaygroundRuntime }) {
     event: null,
   });
   const [questionIndex, setQuestionIndex] = useState(0);
+  const [preview, dispatchPreview] = useReducer(
+    experiencePreviewReducer,
+    INITIAL_EXPERIENCE_PREVIEW,
+  );
+  const audio = usePreviewAudio(preview, state.question?.id);
   const emitAction = useCallback(
     (actionId: ActionId | null) => runtime.emitAction(actionId),
     [runtime],
   );
 
   useEffect(() => {
-    const unsubscribe = runtime.poseEngine.subscribe((event) =>
-      setDebug({ frame: event.payload.frame, event }),
-    );
+    const unsubscribe = runtime.poseEngine.subscribe((event) => {
+      const frame = event.payload.frame;
+      setDebug({ frame, event });
+      const current = runtime.gameStore.getState();
+      const optionId =
+        frame.detectedAction === null
+          ? null
+          : (current.question?.options.find(
+              (option) =>
+                current.actionConfig?.optionMap[option.id] ===
+                frame.detectedAction,
+            )?.id ?? null);
+      dispatchPreview({
+        type: 'pose',
+        actionId: frame.detectedAction,
+        optionId,
+      });
+    });
     const onKeyDown = (event: KeyboardEvent) => {
       const target = event.target;
       if (
@@ -62,21 +83,60 @@ export function PlaygroundView({ runtime }: { runtime: PlaygroundRuntime }) {
     const event = runtime.selectQuestion(nextIndex);
     setQuestionIndex(nextIndex);
     setDebug({ frame: null, event });
+    dispatchPreview({ type: 'reset' });
+    audio.stop();
   }
   const lastAction = debug.frame?.detectedAction;
   return (
-    <div className="playground-grid">
-      <div className="space-y-5">
-        <div className="section-heading">
-          <h2>Pose input</h2>
-          <span className="badge">
-            <span className="status-dot" /> MOCK /{' '}
-            {runtime.poseEngine.status.toUpperCase()}
-          </span>
-        </div>
-        <CameraViewport
-          overlay={<SkeletonOverlay landmarks={debug.frame?.landmarks ?? []} />}
+    <>
+      {state.question && state.actionConfig && (
+        <GameplayScreen
+          question={state.question}
+          actionConfig={state.actionConfig}
+          questionNumber={questionIndex + 1}
+          questionCount={runtime.getQuestionCount()}
+          holdProgress={preview.progress}
+          detectedAction={preview.actionId}
+          feedback={preview}
+          soundEnabled={audio.enabled}
+          soundPending={audio.pending}
+          soundMessage={audio.message}
+          onToggleSound={() => {
+            void audio.toggle();
+          }}
+          cameraPreview={
+            <SampleSkeletonPreview
+              actionId={preview.actionId}
+              trackingStatus={preview.trackingStatus}
+              camera={preview.camera}
+            />
+          }
+          onNextQuestion={changeQuestion}
         />
+      )}
+      <ExperiencePreviewControls
+        preview={preview}
+        soundEnabled={audio.enabled}
+        onCamera={(camera) => {
+          audio.stop();
+          dispatchPreview({ type: 'camera', camera });
+        }}
+        onTracking={(trackingStatus) => {
+          audio.stop();
+          dispatchPreview({ type: 'tracking', trackingStatus });
+        }}
+        onStatus={(status) => dispatchPreview({ type: 'status', status })}
+        onProgress={(progress) =>
+          dispatchPreview({ type: 'progress', progress })
+        }
+        onReset={() => {
+          audio.stop();
+          dispatchPreview({ type: 'reset' });
+          setDebug({ frame: null, event: null });
+        }}
+        onTestSound={audio.test}
+      />
+      <div className="playground-grid" aria-label="Development controls">
         <section className="panel">
           <div className="section-heading">
             <h3>Simulate an action</h3>
@@ -90,7 +150,7 @@ export function PlaygroundView({ runtime }: { runtime: PlaygroundRuntime }) {
                 aria-label={
                   String(index + 1) + ' ' + ACTION_DEFINITIONS[id].name
                 }
-                aria-pressed={lastAction === id}
+                aria-pressed={preview.actionId === id}
                 key={id}
                 onClick={() => emitAction(id)}
               >
@@ -112,7 +172,7 @@ export function PlaygroundView({ runtime }: { runtime: PlaygroundRuntime }) {
             <h3>Event inspector</h3>
             <span className="badge">LIVE MOCK DATA</span>
           </div>
-          <dl className="debug-list" aria-live="polite">
+          <dl className="debug-list">
             <div>
               <dt>Last detected action</dt>
               <dd data-testid="last-action">
@@ -134,6 +194,14 @@ export function PlaygroundView({ runtime }: { runtime: PlaygroundRuntime }) {
               <dd>{state.status}</dd>
             </div>
             <div>
+              <dt>Experience preview state</dt>
+              <dd>{preview.status}</dd>
+            </div>
+            <div>
+              <dt>Actual game progress</dt>
+              <dd>{Math.round(state.holdProgress * 100)}%</dd>
+            </div>
+            <div>
               <dt>Timestamp (monotonic ms)</dt>
               <dd>{debug.frame?.timestampMs.toFixed(1) ?? '-'}</dd>
             </div>
@@ -144,55 +212,13 @@ export function PlaygroundView({ runtime }: { runtime: PlaygroundRuntime }) {
           </details>
         </section>
       </div>
-      <div className="space-y-5">
-        <div className="section-heading">
-          <h2>Question preview</h2>
-          <span className="muted">
-            Fixture {questionIndex + 1} / {runtime.getQuestionCount()}
-          </span>
-        </div>
-        <section className="panel question-panel">
-          <span className="eyebrow">MOCK QUIZ / {state.question?.id}</span>
-          <h3>{state.question?.content}</h3>
-          <p className="muted">
-            Four options. Four distinct actions. Fixed fixture mapping.
-          </p>
-          <div className="options">
-            {state.question?.options.map((option, index) => {
-              const actionId = state.actionConfig?.optionMap[option.id];
-              return (
-                <article
-                  className="option"
-                  key={option.id}
-                  data-detected={actionId === lastAction}
-                >
-                  <div className="row">
-                    <span className="option-number">0{index + 1}</span>
-                    <strong>{option.text}</strong>
-                  </div>
-                  {actionId && <ActionInstruction actionId={actionId} />}
-                  <code>{option.id}</code>
-                </article>
-              );
-            })}
-          </div>
-          <button
-            type="button"
-            className="secondary-button w-full"
-            onClick={changeQuestion}
-          >
-            Load next mock question &rarr;
-          </button>
-        </section>
-        <section className="panel">
-          <HoldProgress progress={state.holdProgress} />
-        </section>
-        <p className="notice">
-          Development only. Detection updates this inspector; answers are never
-          confirmed or submitted. Webcam, classifiers, Canvas effects and hold
-          detection are TODO.
-        </p>
-      </div>
-    </div>
+      <p className="notice mt-5">
+        Development only. Detection updates this inspector; answers are never
+        confirmed or submitted by the game. Experience controls simulate visual
+        feedback only; they do not call a gateway or change game rules. Skeleton
+        samples are drawn locally. Real webcam, classifiers, continuous hold
+        detection and API submission remain future integration work.
+      </p>
+    </>
   );
 }
