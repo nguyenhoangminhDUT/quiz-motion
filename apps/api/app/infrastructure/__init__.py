@@ -1,0 +1,1 @@
+"""Adapters and resource lifecycle."""

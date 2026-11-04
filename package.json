@@ -1,0 +1,47 @@
+{
+  "name": "action-quiz",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "npm run dev --workspace=@action-quiz/web",
+    "build": "npm run build --workspace=@action-quiz/web",
+    "start": "npm run start --workspace=@action-quiz/web",
+    "lint": "npm run lint --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run test && npm run build",
+    "api:sync": "uv sync --directory apps/api --frozen",
+    "api:dev": "uv run --directory apps/api --frozen action-quiz-api",
+    "api:test": "uv run --directory apps/api --frozen pytest",
+    "api:lint": "uv run --directory apps/api --frozen ruff check . ../../scripts/check-database.py",
+    "api:format": "uv run --directory apps/api --frozen ruff format . ../../scripts/check-database.py",
+    "api:format:check": "uv run --directory apps/api --frozen ruff format --check . ../../scripts/check-database.py",
+    "api:typecheck": "uv run --directory apps/api --frozen mypy",
+    "api:check": "npm run api:lint && npm run api:format:check && npm run api:typecheck && npm run api:test",
+    "db:up": "docker compose up -d --wait postgres",
+    "db:down": "docker compose stop postgres",
+    "db:migrate": "uv run --directory apps/api --frozen alembic upgrade head",
+    "db:current": "uv run --directory apps/api --frozen alembic current",
+    "db:verify": "uv run --directory apps/api --frozen python ../../scripts/check-database.py",
+    "check:all": "npm run check && npm run api:check"
+  },
+  "devDependencies": {
+    "eslint": "10.14.0",
+    "prettier": "3.9.10",
+    "typescript": "~6.0.0",
+    "vitest": "5.1.0",
+    "@eslint/js": "10.0.1",
+    "typescript-eslint": "8.72.1",
+    "@next/eslint-plugin-next": "16.4.5",
+    "eslint-plugin-react-hooks": "7.1.1"
+  }
+}
