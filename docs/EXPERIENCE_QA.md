@@ -84,3 +84,30 @@ Remove/disable development snapshot controls in production flow. Verify stale
 question handling, real camera failures and real gateway failures during integration.
 Measure inference and rendering separately on documented hardware before setting
 performance acceptance claims.
+
+## Game session mock integration
+
+The playground now offers two modes. **UI preview** preserves the manual experience
+simulator above. **Play game (mock)** runs the game application with randomized
+four-action mapping, continuous 1500 ms holds and an in-memory QuizGateway.
+
+In game mode, hold a mapped number key 1–8, or hold an action button with pointer,
+Space or Enter. Releasing, losing window focus or hiding the document stops the
+simulated pose. A mapped pose confirms and submits once. Unmapped poses never
+select an option. Next/restart begins a new attempt with a new mapping.
+
+To exercise frame silence, hold a mapped number key and click **Pause frame
+stream** while holding it. The session resets its candidate/progress after more
+than 250 ms without a frame. The external 50 ms scheduler invokes checkTimeout;
+no browser timer is owned by the application layer. The 250 ms gap and 0.7
+confidence threshold are provisional mock settings, to be agreed with Huy.
+
+Session subscriptions drive the shared GameplayScreen and submission feedback.
+Switching modes or unmounting removes the scheduler and input listeners and
+invalidates pending session work. Submission success means receipt only, not a
+correct answer. Real webcam inference, HTTP persistence and retry remain pending.
+
+Automated coverage includes timeout boundaries, delayed frames, in-flight
+submission protection, mapping stability, keyboard hold/release, visible mock
+receipt and interval cleanup. Manual browser verification confirmed a mapped
+Salute hold filled progress and displayed SUBMITTED/Answer sent.
