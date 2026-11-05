@@ -5,3 +5,5 @@ export {
   createGameStore,
   setReadyQuestion,
 } from './presentation/store/game-store';
+
+export { createGameSession } from './application/game-session';

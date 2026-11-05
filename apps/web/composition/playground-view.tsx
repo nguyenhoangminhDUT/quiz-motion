@@ -15,8 +15,40 @@ import {
 } from './experience-preview';
 import { ExperiencePreviewControls } from './experience-preview-controls';
 import { usePreviewAudio } from './use-preview-audio';
+import { LiveGamePanel } from './live-game-panel';
 
 export function PlaygroundView({ runtime }: { runtime: PlaygroundRuntime }) {
+  const [live, setLive] = useState(false);
+  return (
+    <>
+      <div className="panel" role="group" aria-label="Playground mode">
+        <button
+          type="button"
+          className="secondary-button"
+          aria-pressed={!live}
+          onClick={() => setLive(false)}
+        >
+          UI preview
+        </button>
+        <button
+          type="button"
+          className="secondary-button"
+          aria-pressed={live}
+          onClick={() => setLive(true)}
+        >
+          Play game (mock)
+        </button>
+      </div>
+      {live ? (
+        <LiveGamePanel />
+      ) : (
+        <ExperiencePlaygroundView runtime={runtime} />
+      )}
+    </>
+  );
+}
+
+function ExperiencePlaygroundView({ runtime }: { runtime: PlaygroundRuntime }) {
   const state = useStore(runtime.gameStore);
   const [debug, setDebug] = useState<PlaygroundDebug>({
     frame: null,
