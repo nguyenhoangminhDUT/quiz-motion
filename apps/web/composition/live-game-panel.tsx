@@ -4,6 +4,7 @@ import { useEffect, useState, useSyncExternalStore } from 'react';
 import {
   ACTION_IDS,
   ACTION_DEFINITIONS,
+  type ActionId,
   type GameStatus,
 } from '@action-quiz/contracts';
 import {
@@ -55,6 +56,10 @@ export function LiveGamePanel() {
 }
 
 export function LiveGameView({ runtime }: { runtime: LiveGameRuntime }) {
+  function releaseAction(id: ActionId) {
+    if (runtime.getAction() === id) runtime.setAction(null);
+  }
+
   const state = useSyncExternalStore(
     runtime.session.subscribe,
     runtime.session.getState,
@@ -165,10 +170,10 @@ export function LiveGameView({ runtime }: { runtime: LiveGameRuntime }) {
                 event.currentTarget.setPointerCapture(event.pointerId);
                 runtime.setAction(id);
               }}
-              onPointerUp={() => runtime.setAction(null)}
-              onPointerCancel={() => runtime.setAction(null)}
-              onLostPointerCapture={() => runtime.setAction(null)}
-              onBlur={() => runtime.setAction(null)}
+              onPointerUp={() => releaseAction(id)}
+              onPointerCancel={() => releaseAction(id)}
+              onLostPointerCapture={() => releaseAction(id)}
+              onBlur={() => releaseAction(id)}
               onKeyDown={(event) => {
                 if (!event.repeat && [' ', 'Enter'].includes(event.key)) {
                   event.preventDefault();
@@ -178,7 +183,7 @@ export function LiveGameView({ runtime }: { runtime: LiveGameRuntime }) {
               onKeyUp={(event) => {
                 if ([' ', 'Enter'].includes(event.key)) {
                   event.preventDefault();
-                  runtime.setAction(null);
+                  releaseAction(id);
                 }
               }}
             >

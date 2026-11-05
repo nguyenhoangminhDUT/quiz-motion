@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  ACTION_IDS,
-  type QuizQuestion,
-} from '@action-quiz/contracts';
+import { ACTION_IDS, type QuizQuestion } from '@action-quiz/contracts';
 import { createRandomQuestionConfig } from './action-randomizer';
 
 const question: QuizQuestion = {
@@ -59,9 +56,9 @@ describe('createRandomQuestionConfig', () => {
   it.each([-0.1, 1, NaN, Infinity])(
     'rejects invalid RNG output: %s',
     (value) => {
-      expect(() =>
-        createRandomQuestionConfig(question, () => value),
-      ).toThrow('Random value must be in [0, 1).');
+      expect(() => createRandomQuestionConfig(question, () => value)).toThrow(
+        'Random value must be in [0, 1).',
+      );
     },
   );
 

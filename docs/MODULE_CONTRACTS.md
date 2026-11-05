@@ -42,8 +42,9 @@ set and values must be four distinct actions. questionBundleSchema checks the re
 The option record validator preserves own keys such as **proto** instead of assigning
 them through a prototype setter. Production DTO boundaries must validate unknown input.
 
-Mapping stays stable throughout a question. The playground uses the first four actions
-and caches its fixed fixture mapping. Production randomization is TODO Phase 3.
+Mapping stays stable throughout one question attempt. UI preview caches its fixed
+first-four-action fixture mapping. Play game (mock) uses the injected-RNG randomizer;
+restart or revisiting a question starts a new attempt and randomizes again.
 
 SubmitAnswerRequest contains questionId, selectedOptionId and optional attemptId.
 SubmissionResult contains those IDs and submissionId. The mock only acknowledges an
@@ -55,7 +56,8 @@ Fields: status, question, actionConfig, candidateOptionId, confirmedOptionId,
 holdProgress and error. Progress uses [0,1]. Status vocabulary:
 IDLE, READY, DETECTING, HOLDING, SUBMITTING, SUBMITTED, ERROR.
 
-This defines future flow, not a completed transition engine. Phase 0 only uses IDLE/READY.
+UI preview's fixture store uses IDLE/READY. The game session implements all statuses
+with mock frame input and an in-memory QuizGateway.
 Detection is input; candidate selection interprets it; confirmation requires a valid
 continuous hold; submission is separate I/O and can fail. These must not be conflated.
 
@@ -64,6 +66,9 @@ continuous hold; submission is separate I/O and can fail. These must not be conf
 Every GameEvent has type, timestampMs and payload as a discriminated union.
 Only QUESTION_LOADED, QUESTION_CHANGED and POSE_UPDATED are produced in Phase 0.
 The remaining events define integration boundaries for future phases.
+The game session currently publishes GameState snapshots through subscribe(), not
+the complete typed event set below. Composition derives confirmation audio from
+confirmedOptionId changes, including when React batches intermediate statuses.
 
 | Type                  | Payload                                 | Future producer → consumer    |
 | --------------------- | --------------------------------------- | ----------------------------- |

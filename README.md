@@ -1,13 +1,13 @@
 # Action Quiz
 
-A body-powered quiz foundation. The future game assigns four distinct actions from
+A body-powered quiz foundation. The mock game assigns four distinct actions from
 an eight-action pool to four options, then requires a continuous 1500 ms pose hold
 before confirming and submitting an answer.
 
-**Current status: Phase 0, project initialization.** Working home page, development
-playground, shared contracts, ports and mock adapters, plus the backend/database
-extension described below. Webcam inference, classifiers,
-randomization, hold detection, scoring and production API calls are TODO.
+**Current status: project foundation and mock gameplay implemented.** Working home page,
+development playground, shared contracts, ports, randomization, continuous hold detection
+and mock submission, plus the backend/database extension described below.
+Webcam inference, classifiers, scoring and production Quiz API calls are TODO.
 
 ## Quick start
 
@@ -81,8 +81,9 @@ Experience currently needs presentation only, so there are no empty layer folder
 
 Tests cover action IDs/metadata, invalid contracts, engine lifecycle and subscription
 cleanup, quiz fixtures, arbitrary option IDs, stable mapping, keyboard/button input,
-StrictMode and observable UI behavior. The mock game never confirms or submits
-answers; experience feedback snapshots are changed manually in the preview.
+StrictMode and observable UI behavior. **UI preview** changes experience snapshots
+manually without submitting. **Play game (mock)** confirms after a continuous hold
+and submits to an in-memory gateway; receipt does not mean a correct answer.
 Production builds disable the playground and its navigation links.
 
 The [experience layout](apps/web/features/experience/README.md) now presents a
@@ -94,7 +95,7 @@ manual progress, confirmation/submission feedback and optional sound, without ch
 the game store or making submission requests. See [Experience QA](docs/EXPERIENCE_QA.md).
 Live video and model-driven landmarks remain future work.
 
-Next: MediaPipe/classifiers, camera alignment, game/hold/randomizer, Quiz API, then
+Next: MediaPipe/classifiers, camera alignment, real game input, Quiz API, then
 QA/performance. No FPS or inference latency has been benchmarked.
 
 Read [Architecture](docs/ARCHITECTURE.md), [Contracts](docs/MODULE_CONTRACTS.md),

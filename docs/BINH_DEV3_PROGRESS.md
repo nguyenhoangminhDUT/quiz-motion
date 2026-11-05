@@ -1,6 +1,6 @@
 # Tổng hợp tiến độ Dev 3 — Bình
 
-- Ngày cập nhật: 05/11/2026.
+- Ngày cập nhật: 06/11/2026.
 - Project: quiz-motion.
 - Nhánh làm việc: `feature/game-hold-service`, phát triển từ `dev`.
 - Phạm vi: random hành động, quản lý trạng thái game, giữ tư thế, mock submit và tích hợp giao diện.
@@ -113,15 +113,15 @@ Confidence và khoảng ngắt frame là cấu hình thử nghiệm, cần chố
 
 ### Cần phối hợp tiếp
 
-- Chốt cơ chế event xác nhận riêng cho hiệu ứng/âm thanh đúng một lần. Hiện chưa phát đầy đủ `GameEvent` như `ANSWER_CONFIRMED`; không nên coi state notification là event bus đã hoàn thiện.
-- Do mock submit trả nhanh, React có thể gộp các cập nhật; chưa bảo đảm màn hình/âm thanh xác nhận riêng được thể hiện trước receipt.
+- Hiện chưa phát đầy đủ `GameEvent` như `ANSWER_CONFIRMED`; không nên coi state notification là event bus đã hoàn thiện. Audio đã dùng thay đổi `confirmedOptionId` để phát xác nhận một lần, kể cả khi React gộp các cập nhật.
+- Audio receipt/error chờ cue xác nhận 300 ms để không cắt mất âm xác nhận; submit và trạng thái game không bị trì hoãn. Màn hình trạng thái xác nhận riêng trước receipt vẫn chưa được bảo đảm khi submit trả nhanh.
 - Bàn giao payload/state fixtures thành tài liệu hoặc dữ liệu mẫu riêng nếu Dũng cần dùng ngoài playground.
 - Chốt confidence, clock, timestamp và xử lý frame ngừng gửi với Huy.
 - Phần camera stream, landmark ordering, video/skeleton alignment thuộc phối hợp Huy–Dũng; chưa nằm trong đầu vào thật của demo này.
 
 ## 4. Kiểm thử và bằng chứng
 
-Kết quả lần chạy gần nhất sau tích hợp:
+Kết quả lần chạy sau tích hợp ngày 05/11/2026 (xem mục 8 cho kiểm tra sau review):
 
 - `npm run lint`: pass.
 - `npm run typecheck`: pass cho web và contracts.
@@ -179,13 +179,23 @@ npm test
 - Retry có kiểm soát, cancellation request thật và idempotency phía server.
 - Attempt/session ID dùng được qua nhiều người dùng, nhiều phiên và retry.
 - Chấm điểm, đúng/sai, lưu kết quả database và lịch sử chơi.
-- Event xác nhận riêng và kiểm thử hiệu ứng/audio chốt một lần khi submit trả nhanh.
-- Kiểm thử thiết bị/trình duyệt rộng hơn, hiệu năng camera thật và production build.
+- Event xác nhận riêng và kiểm thử màn hình/hiệu ứng xác nhận khi submit trả nhanh; audio đã có kiểm thử tự động.
+- Kiểm thử thiết bị/trình duyệt rộng hơn và hiệu năng camera thật.
 
 Không coi demo mock là game AI end-to-end đã hoàn tất. Kết quả test hiện tại không xác nhận độ chính xác của tám bộ phân loại hành động.
 
-## 7. Tình trạng bàn giao Git
+## 7. Tình trạng bàn giao Git ngày 05/11/2026 (lịch sử)
 
 Tại thời điểm ghi note, các file game mới và một số file composition/docs đang là thay đổi local trên `feature/game-hold-service`, chưa được commit trong trạng thái Git kiểm tra được. Chưa có thao tác push hoặc tạo PR trong phần công việc này.
 
 Trước khi bàn giao: review diff, chạy bộ kiểm tra đầy đủ phù hợp, commit các file liên quan, rồi push nhánh và mở PR vào `dev` theo quy trình team.
+
+## 8. Sửa lỗi sau review ngày 06/11/2026
+
+- Snapshot được review đã có commit `cc7aa07` và merge PR #3 (`a3dcf56`); mục 7 là ghi nhận trước bàn giao, không phải trạng thái Git hiện tại.
+- Sửa reset nhầm khi chuyển focus giữa các nút động tác: blur/release của nút cũ chỉ xóa động tác nếu nó vẫn đang là động tác hiện tại.
+- Nối audio xác nhận qua thay đổi ID đáp án đã chốt và xếp cue receipt/error sau xác nhận; hủy cue chờ khi reset, đổi câu, mute, dừng hoặc unmount.
+- Format lại hai file randomizer và đồng bộ tài liệu mô tả UI preview/Play game (mock).
+- Bổ sung test hồi quy cho focus/release, submit trả nhanh thành công/lỗi, receipt đến ở render riêng và hủy audio đang chờ.
+- Kiểm tra sau sửa: `npm run check` pass đầy đủ format, architecture lint, typecheck, **80 test** (76 web + 4 contracts) và production build; `git diff --check` pass. Có 9 test hồi quy mới so với 71 test trước review.
+- Chưa kiểm tra nghe âm thanh thực tế hoặc thiết bị/trình duyệt thật trong lượt sửa này.

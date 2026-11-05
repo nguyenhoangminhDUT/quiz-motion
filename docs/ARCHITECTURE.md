@@ -62,7 +62,7 @@ ambient Node types; Zod is its only runtime dependency.
 
 ## Composition root and lifecycle
 
-createPlayground(clock) creates a MockPoseEngine, MockQuizGateway, load-questions
+For UI preview, createPlayground(clock) creates a MockPoseEngine, MockQuizGateway, load-questions
 use case, per-instance Zustand store and question mapping cache. No mutable singleton.
 Fixed mapping is fixture behavior, not a production randomizer. Mapping remains stable
 through renders and while revisiting the same question.
@@ -72,9 +72,19 @@ guard prevents late initialization from mounting UI after unmount. Dispose clear
 engine subscribers and prevents further events. StrictMode cleanup/remount is tested.
 PlaygroundView removes its keyboard listener and engine subscription on unmount.
 
-A pose event updates inspector state only; game remains READY and hold progress is zero.
+In UI preview, a pose event updates inspector state only; game remains READY and hold progress is zero.
 Question changes clear the old debug frame and reset game state. Future async frame
 and HTTP processing must use session/question generations to discard stale work.
+
+Play game (mock) uses a separate createLiveGameRuntime(clock), game session and
+MockQuizGateway. The pure randomizer and hold detector live in domain; application
+owns state transitions and submission through the port. Clock, RNG and attempt IDs
+are injected. Session generations discard stale frames/responses. Composition owns
+the 50 ms scheduler, input listeners and cleanup; React subscribes to session snapshots.
+Mapping is stable per attempt; restart/revisiting randomizes again. Confirmation audio
+uses confirmedOptionId changes and queues receipt/error behind the short confirmation
+cue. Reset, question change, mute and unmount cancel queued feedback. This audio timer
+does not delay game submission. Complete typed GameEvent delivery remains pending.
 
 ## Experience structure adjustment
 
@@ -107,8 +117,9 @@ define left/right by the player's anatomical side. Frames are not uploaded or st
 Dũng owns Canvas/audio resources and their cleanup. Keep high-frequency landmarks and drawing
 outside broad React/Zustand updates. Measure inference and rendering independently.
 
-Bình adds pure randomization with an injected RNG, continuous hold logic using the
-session monotonic clock, candidate resets and one submission per confirmation.
+Bình's game session implements pure randomization with an injected RNG, continuous
+hold logic using the session monotonic clock, candidate resets and one mock submission
+per confirmation. Real PoseEngine integration and agreed CV thresholds remain pending.
 Implement HTTP QuizGateway only after an API specification. Validate unknown DTOs,
 send option IDs, handle cancellation/errors/idempotency and keep correct answers server-side.
 

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type {
   ExperienceFeedback,
   FeedbackAudio,
@@ -7,6 +7,8 @@ import type {
 import { WebAudioFeedback } from '@/features/experience/infrastructure/audio/web-audio-feedback';
 
 const createAudio = () => new WebAudioFeedback();
+// Leave room for the two-note confirmation before a receipt/error replaces it.
+const CONFIRMATION_CUE_MS = 300;
 
 export function usePreviewAudio(
   feedback: ExperienceFeedback,
@@ -15,6 +17,10 @@ export function usePreviewAudio(
 ) {
   const audioRef = useRef<FeedbackAudio | null>(null);
   const operationRef = useRef(0);
+  const confirmationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const pendingCueRef = useRef<FeedbackCue | null>(null);
   const previousRef = useRef<{
     questionId: string | undefined;
     status: ExperienceFeedback['status'];
@@ -24,14 +30,25 @@ export function usePreviewAudio(
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
+  const stop = useCallback(() => {
+    if (confirmationTimerRef.current !== null) {
+      clearTimeout(confirmationTimerRef.current);
+      confirmationTimerRef.current = null;
+    }
+    pendingCueRef.current = null;
+    audioRef.current?.stop();
+  }, []);
+
   useEffect(() => {
     const audio = factory();
     audioRef.current = audio;
+    previousRef.current = null;
     return () => {
+      stop();
       audioRef.current = null;
       audio.dispose();
     };
-  }, [factory]);
+  }, [factory, stop]);
 
   const { status, confirmedOptionId } = feedback;
   useEffect(() => {
@@ -44,15 +61,42 @@ export function usePreviewAudio(
         previous.confirmedOptionId === confirmedOptionId)
     )
       return;
-    audioRef.current?.stop();
     // Question changes are resets, never terminal feedback for the new question.
-    if (previous.questionId !== questionId) return;
-    const cue: FeedbackCue | null =
-      status === 'confirmed' || status === 'submitted' || status === 'error'
-        ? status
-        : null;
-    if (cue && audioRef.current?.enabled) audioRef.current.play(cue);
-  }, [questionId, status, confirmedOptionId]);
+    const audio = audioRef.current;
+    if (previous.questionId !== questionId || !audio?.enabled) {
+      stop();
+      return;
+    }
+    // A fast submission may batch away intermediate statuses; the locked ID persists.
+    const justConfirmed =
+      (confirmedOptionId !== null &&
+        previous.confirmedOptionId !== confirmedOptionId) ||
+      (status === 'confirmed' && previous.status !== 'confirmed');
+    if (justConfirmed) {
+      stop();
+      audio.play('confirmed');
+      confirmationTimerRef.current = setTimeout(() => {
+        confirmationTimerRef.current = null;
+        const pending = pendingCueRef.current;
+        pendingCueRef.current = null;
+        if (pending && audioRef.current === audio && audio.enabled)
+          audio.play(pending);
+      }, CONFIRMATION_CUE_MS);
+    }
+    if (status === 'submitted' || status === 'error') {
+      if (confirmationTimerRef.current !== null) pendingCueRef.current = status;
+      else {
+        stop();
+        audio.play(status);
+      }
+    } else if (
+      !justConfirmed &&
+      status !== 'confirmed' &&
+      !(status === 'submitting' && confirmedOptionId !== null)
+    ) {
+      stop();
+    }
+  }, [questionId, status, confirmedOptionId, stop]);
 
   async function toggle() {
     const audio = audioRef.current;
@@ -60,6 +104,7 @@ export function usePreviewAudio(
     const operation = ++operationRef.current;
     setMessage(null);
     if (audio.enabled) {
+      stop();
       audio.mute();
       setEnabled(false);
       return;
@@ -90,7 +135,10 @@ export function usePreviewAudio(
     pending,
     message,
     toggle,
-    test: () => audioRef.current?.play('confirmed'),
-    stop: () => audioRef.current?.stop(),
+    test: () => {
+      stop();
+      audioRef.current?.play('confirmed');
+    },
+    stop,
   };
 }
