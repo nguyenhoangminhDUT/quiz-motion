@@ -1,8 +1,10 @@
 import { StrictMode } from 'react';
 import { act, renderHook } from '@testing-library/react';
-import { expect, it, vi } from 'vitest';
+import { afterEach, expect, it, vi } from 'vitest';
 import type { ExperienceFeedback, FeedbackAudio } from '@/features/experience';
 import { usePreviewAudio } from './use-preview-audio';
+
+afterEach(() => vi.useRealTimers());
 
 function fakeAudio() {
   let enabled = false;
@@ -35,6 +37,73 @@ const confirmed: ExperienceFeedback = {
   candidateOptionId: 'answer',
   confirmedOptionId: 'answer',
 };
+
+it.each(['reset', 'question', 'mute', 'stop', 'unmount'] as const)(
+  'cancels a queued receipt on %s without replaying confirmation',
+  async (reason) => {
+    vi.useFakeTimers();
+    const audio = fakeAudio();
+    const factory = () => audio;
+    const { result, rerender, unmount } = renderHook(
+      ({ feedback, questionId }) =>
+        usePreviewAudio(feedback, questionId, factory),
+      { initialProps: { feedback: ready, questionId: 'question-1' } },
+    );
+    await act(async () => {
+      await result.current.toggle();
+    });
+    const submitted: ExperienceFeedback = { ...confirmed, status: 'submitted' };
+    rerender({ feedback: submitted, questionId: 'question-1' });
+    rerender({ feedback: { ...submitted }, questionId: 'question-1' });
+    expect(audio.play).toHaveBeenCalledExactlyOnceWith('confirmed');
+    if (reason === 'reset')
+      rerender({ feedback: ready, questionId: 'question-1' });
+    else if (reason === 'question')
+      rerender({ feedback: submitted, questionId: 'question-2' });
+    else if (reason === 'mute') {
+      await act(async () => {
+        await result.current.toggle();
+      });
+    } else if (reason === 'stop') act(() => result.current.stop());
+    else unmount();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1000);
+    });
+    expect(audio.play).toHaveBeenCalledOnce();
+    expect(vi.getTimerCount()).toBe(0);
+    if (reason !== 'unmount') unmount();
+    expect(audio.dispose).toHaveBeenCalledOnce();
+  },
+);
+
+it('lets confirmation finish when the receipt arrives in a separate render', async () => {
+  vi.useFakeTimers();
+  const audio = fakeAudio();
+  const factory = () => audio;
+  const { result, rerender, unmount } = renderHook(
+    ({ feedback }) => usePreviewAudio(feedback, 'question-1', factory),
+    { initialProps: { feedback: ready } },
+  );
+  await act(async () => {
+    await result.current.toggle();
+  });
+  rerender({ feedback: { ...confirmed, status: 'submitting' } });
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(100);
+  });
+  const stops = audio.stop.mock.calls.length;
+  rerender({ feedback: { ...confirmed, status: 'submitted' } });
+  expect(audio.stop).toHaveBeenCalledTimes(stops);
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(199);
+  });
+  expect(audio.play).toHaveBeenCalledExactlyOnceWith('confirmed');
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(1);
+  });
+  expect(audio.play.mock.calls).toEqual([['confirmed'], ['submitted']]);
+  unmount();
+});
 
 it('plays once per transition after opt-in, never replays on enable or question change, and disposes StrictMode instances', async () => {
   const instances: ReturnType<typeof fakeAudio>[] = [];

@@ -26,12 +26,16 @@ npm install and reviewing the diff; do not blindly take one side.
 
 ## Using mocks
 
-Open /playground under npm run dev. Buttons and keys 1–8 use the same emitAction path.
-Shortcuts ignore held keys, modifiers and editable fields.
-Tracking loss emits null action, zero confidence and no landmarks.
-Next question resets inspector/state; returning to a fixture preserves its mapping.
-There are no confirmation/submission controls. Production /playground returns 404,
-and production home has no playground link.
+Open /playground under npm run dev. **UI preview** uses buttons/keys 1–8 for manual
+pose events and separate experience snapshots; these do not confirm or submit.
+Returning to a preview fixture preserves its fixed mapping.
+**Play game (mock)** uses held buttons/keys for continuous frames, a randomized
+mapping and automatic confirmation/submission after 1500 ms. Restart/next begins
+a new attempt. Releasing input or losing focus clears the simulated pose;
+frame silence resets hold progress through an external scheduler.
+Tracking loss uses null action, zero confidence and no landmarks. Shortcuts ignore
+repeat keydown, modifiers and editable controls. Production /playground returns 404,
+and production home has no playground link. See BINH_DEV3_PROGRESS.md for the demo.
 
 Huy can evolve the engine adapter without UI work. Dũng can use manual pose input without
 a camera. Bình can test application services against MockQuizGateway without a backend.

@@ -29,15 +29,22 @@ manual progress, a hold ring, textual/visual feedback and opt-in Web Audio cues.
 Subphase 5 adds accessibility support and automated reset/resource/integration checks.
 Real-browser layout, audio and assistive-technology checks are still pending;
 see [Experience QA](EXPERIENCE_QA.md). Real video alignment, camera/model integration
-and real game-state wiring remain TODO.
+remain TODO. Mock game-state wiring is available in Play game (mock).
 See [Experience](../apps/web/features/experience/README.md) for preview and integration details.
 
-## Phase 3 — Game State / Randomizer / Hold Detection — TODO / Bình
+## Phase 3 — Game State / Randomizer / Hold Detection — IMPLEMENTED WITH MOCK INPUT / Bình
 
 Pure injected-RNG selection of four distinct actions, stable mapping, state transitions
 and continuous 1500 ms hold. Reset on lost tracking, invalid action, candidate changes
 or question changes. Discard stale events, prevent duplicate confirmation/submission.
 Use monotonic timestamps, not assumed frame rates.
+
+Implemented in the game domain/application and Play game (mock): injected RNG,
+stable mapping per attempt, hold/reset/timeout, stale-work guards, single submission
+and subscribed UI state. Restart/revisiting starts a new randomized attempt.
+Composition sequences confirmation audio before receipt/error, including fast submissions.
+Real PoseEngine wiring, agreed CV thresholds and complete typed GameEvent delivery
+remain pending; state subscriptions are not a complete event bus.
 
 ## Phase 4 — Quiz API Integration — TODO / Bình
 
