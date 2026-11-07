@@ -20,13 +20,14 @@ timestampMs is monotonic milliseconds from the shared session clock, never Date.
 detectedAction is ActionId or null. confidence is a [0,1] match strength, not a calibrated
 statistical probability. Mock confidence=1 means manually supplied input only.
 
-landmarks is readonly and may be empty or partial; never assume 33 points.
+Tracking frames contain exactly 33 readonly landmarks in MediaPipe index order.
 x/y use normalized image coordinates, origin at top left, x right, y down, unmirrored.
 Out-of-frame points can exceed [0,1]. z is relative depth on the adapter's image scale
 and can be negative. Optional visibility/presence are [0,1].
 
 trackingStatus is tracking, lost or unavailable. Tracking may still have null action.
-Lost/unavailable require null action, confidence=0 and no landmarks.
+Occluded joints remain at their index and use visibility/presence. Lost/unavailable
+require null action, confidence=0 and no landmarks.
 poseFrameSchema validates finite values and tracking consistency.
 The mock has no skeleton data, even for its simulated tracking state.
 

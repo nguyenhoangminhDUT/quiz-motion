@@ -14,6 +14,14 @@ const question: QuizQuestion = {
   ],
 };
 
+const trackedLandmarks = Array.from({ length: 33 }, (_, index) => ({
+  x: index / 32,
+  y: 0.5,
+  z: 0,
+  visibility: 1,
+  presence: 1,
+}));
+
 describe('createGameSession', () => {
   it('submits the mapped option once after a continuous hold', async () => {
     const submitAnswer = vi.fn<QuizGateway['submitAnswer']>(
@@ -48,7 +56,7 @@ describe('createGameSession', () => {
       detectedAction: 'ACT_02',
       confidence: 1,
       trackingStatus: 'tracking',
-      landmarks: [],
+      landmarks: trackedLandmarks,
     };
 
     for (let time = 0; time < 1500; time += 250) {
@@ -105,7 +113,7 @@ function trackingFrame(timestampMs: number, confidence = 1): PoseFrameResult {
     detectedAction: 'ACT_02',
     confidence,
     trackingStatus: 'tracking',
-    landmarks: [],
+    landmarks: trackedLandmarks,
   };
 }
 

@@ -7,6 +7,14 @@ import {
   questionBundleSchema,
 } from './index';
 
+const trackedLandmarks = Array.from({ length: 33 }, (_, index) => ({
+  x: index / 32,
+  y: 0.5,
+  z: 0,
+  visibility: 1,
+  presence: 1,
+}));
+
 describe('shared contracts', () => {
   it('exposes exactly eight stable, unique action IDs with complete metadata', () => {
     expect(ACTION_IDS).toEqual([
@@ -50,9 +58,16 @@ describe('shared contracts', () => {
       poseFrameSchema.safeParse({
         ...frame,
         trackingStatus: 'tracking',
-        landmarks: [{ x: 0.5, y: 0.3, z: -0.2 }],
+        landmarks: trackedLandmarks,
       }).success,
     ).toBe(true);
+    expect(
+      poseFrameSchema.safeParse({
+        ...frame,
+        trackingStatus: 'tracking',
+        landmarks: trackedLandmarks.slice(1),
+      }).success,
+    ).toBe(false);
   });
   const question = {
     id: 'q',
