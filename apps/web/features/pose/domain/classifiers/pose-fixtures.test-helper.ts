@@ -88,3 +88,51 @@ export function createLeanPose(direction: 'left' | 'right'): PoseLandmark[] {
   }
   return pose;
 }
+
+export function createCrossArmsPose(): PoseLandmark[] {
+  const pose = createNeutralPose();
+  setPoint(pose, 'leftElbow', [0.68, 0.48]);
+  setPoint(pose, 'rightElbow', [0.32, 0.48]);
+  setPoint(pose, 'leftWrist', [0.4, 0.39]);
+  setPoint(pose, 'rightWrist', [0.6, 0.39]);
+  return pose;
+}
+
+export function createSalutePose(): PoseLandmark[] {
+  const pose = createNeutralPose();
+  setPoint(pose, 'rightElbow', [0.24, 0.31]);
+  setPoint(pose, 'rightWrist', [0.43, 0.2]);
+  return pose;
+}
+
+export function createDabPose(bentSide: 'left' | 'right'): PoseLandmark[] {
+  const pose = createNeutralPose();
+  const straightSide = bentSide === 'left' ? 'right' : 'left';
+  if (bentSide === 'left') {
+    setPoint(pose, 'leftElbow', [0.7, 0.2]);
+    setPoint(pose, 'leftWrist', [0.54, 0.22]);
+  } else {
+    setPoint(pose, 'rightElbow', [0.3, 0.2]);
+    setPoint(pose, 'rightWrist', [0.46, 0.22]);
+  }
+  if (straightSide === 'left') {
+    setPoint(pose, 'leftElbow', [0.75, 0.48]);
+    setPoint(pose, 'leftWrist', [0.88, 0.58]);
+  } else {
+    setPoint(pose, 'rightElbow', [0.25, 0.48]);
+    setPoint(pose, 'rightWrist', [0.12, 0.58]);
+  }
+  return pose;
+}
+
+export function createThinkingPose(side: 'left' | 'right'): PoseLandmark[] {
+  const pose = createNeutralPose();
+  if (side === 'left') {
+    setPoint(pose, 'leftElbow', [0.65, 0.48]);
+    setPoint(pose, 'leftWrist', [0.52, 0.27]);
+  } else {
+    setPoint(pose, 'rightElbow', [0.35, 0.48]);
+    setPoint(pose, 'rightWrist', [0.48, 0.27]);
+  }
+  return pose;
+}
