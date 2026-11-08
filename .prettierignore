@@ -5,6 +5,7 @@ coverage
 .npm-cache
 next-env.d.ts
 *.tsbuildinfo
+apps/web/public/mediapipe/wasm
 
 .venv
 .uv-cache
