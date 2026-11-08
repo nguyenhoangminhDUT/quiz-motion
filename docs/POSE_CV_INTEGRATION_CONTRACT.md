@@ -250,5 +250,3 @@ unsubscribePose();
 unsubscribeCamera();
 poseEngine.dispose();
 ```
-
-
