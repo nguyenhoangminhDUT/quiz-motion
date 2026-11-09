@@ -8,12 +8,21 @@ export interface PoseLandmark {
   readonly presence?: number | undefined;
 }
 export type TrackingStatus = 'tracking' | 'lost' | 'unavailable';
+export type CameraStatus =
+  | 'idle'
+  | 'initializing'
+  | 'ready'
+  | 'permission-denied'
+  | 'not-found'
+  | 'error'
+  | 'stopped';
 export interface PoseFrameResult {
   /** Monotonic milliseconds from the same session clock, never a Unix date. */
   readonly timestampMs: number;
   readonly detectedAction: ActionId | null;
   /** Rule match strength [0,1], not a calibrated probability. */
   readonly confidence: number;
+  /** Exactly 33 indexed MediaPipe landmarks while tracking, otherwise empty. */
   readonly landmarks: readonly PoseLandmark[];
   readonly trackingStatus: TrackingStatus;
 }

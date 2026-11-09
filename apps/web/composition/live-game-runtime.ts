@@ -6,6 +6,14 @@ import {
 } from '@/features/game';
 import { MockQuizGateway } from '@/features/game/infrastructure/mock/mock-quiz-gateway';
 
+const manualLandmarks = Array.from({ length: 33 }, (_, index) => ({
+  x: index / 32,
+  y: 0.5,
+  z: 0,
+  visibility: 1,
+  presence: 1,
+}));
+
 /** Manual frames drive real game rules; submissions remain in memory. */
 export function createLiveGameRuntime(
   now: () => number,
@@ -36,7 +44,7 @@ export function createLiveGameRuntime(
         detectedAction: action,
         confidence: action ? 1 : 0,
         trackingStatus: action ? 'tracking' : 'lost',
-        landmarks: [],
+        landmarks: action ? manualLandmarks : [],
       },
       generation,
     );

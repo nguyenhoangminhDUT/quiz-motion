@@ -123,5 +123,6 @@ export default defineConfig([
     '**/next-env.d.ts',
     '**/coverage/**',
     '.npm-cache/**',
+    'apps/web/public/mediapipe/wasm/**',
   ]),
 ]);

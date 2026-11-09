@@ -21,6 +21,13 @@ export const poseFrameSchema = z
     ),
   })
   .superRefine((frame, ctx) => {
+    if (frame.trackingStatus === 'tracking' && frame.landmarks.length !== 33) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['landmarks'],
+        message: 'Tracking frames must contain exactly 33 indexed landmarks.',
+      });
+    }
     if (
       frame.trackingStatus !== 'tracking' &&
       (frame.detectedAction !== null ||
