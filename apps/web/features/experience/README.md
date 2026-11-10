@@ -5,6 +5,20 @@ decisions are supplied by the other features through composition.
 
 ## Subphase 1: gameplay layout
 
+The `/play` route now supplies real camera video, MediaPipe landmarks and Game
+Session feedback through `composition/camera-game-client.tsx`. It uses mock quiz
+data and in-memory submissions, runs with `npm run dev`, and does not depend on
+`/pose-debug`. The playground described below remains a separate simulation.
+`GameplayScreen` accepts `mode="camera"` and a `cameraLabel` to display live-game
+copy without changing the preview defaults.
+
+Camera mode now uses a compact 2×2 answer grid, a viewport-height-aware camera,
+and a smaller mobile camera beside the hold progress. Optional `evaluation` and
+`nextQuestionInSeconds` props show correctness, the correct answer, and a result
+countdown. Correct answers have a green border and label; an incorrect selection
+has a red border and label. The camera runtime advances after 3 seconds; the
+presentation owns no countdown timer or grading logic.
+
 Implemented: responsive camera placeholder, question and four answer cards,
 action-specific illustrations and instructions, question counter, and the existing
 progress display. Player presentation appears before the simulation controls and

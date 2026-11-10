@@ -1,5 +1,6 @@
 import {
   poseFrameSchema,
+  answerEvaluationSchema,
   type GameState,
   type PoseFrameResult,
   type QuizQuestion,
@@ -26,6 +27,7 @@ function initialState(): GameState {
     confirmedOptionId: null,
     holdProgress: 0,
     error: null,
+    evaluation: null,
   };
 }
 
@@ -193,7 +195,23 @@ export function createGameSession(options: GameSessionOptions) {
         throw new Error('Submission response does not match the answer.');
       }
 
-      publish({ ...state, status: 'SUBMITTED', error: null });
+      const evaluation =
+        result.evaluation === undefined
+          ? null
+          : answerEvaluationSchema.parse(result.evaluation);
+      if (
+        evaluation &&
+        (!state.question?.options.some(
+          (option) => option.id === evaluation.correctOptionId,
+        ) ||
+          evaluation.isCorrect !==
+            (request.selectedOptionId === evaluation.correctOptionId))
+      ) {
+        throw new Error(
+          'Submission evaluation does not match the question or answer.',
+        );
+      }
+      publish({ ...state, status: 'SUBMITTED', error: null, evaluation });
     } catch (error: unknown) {
       if (submissionGeneration !== generation) {
         return;

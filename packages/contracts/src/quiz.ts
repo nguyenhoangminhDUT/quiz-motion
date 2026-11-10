@@ -18,10 +18,15 @@ export interface SubmitAnswerRequest {
   readonly selectedOptionId: string;
   readonly attemptId?: string;
 }
+export interface AnswerEvaluation {
+  readonly isCorrect: boolean;
+  readonly correctOptionId: string;
+}
 export interface SubmissionResult {
   readonly questionId: string;
   readonly selectedOptionId: string;
   readonly submissionId: string;
+  readonly evaluation?: AnswerEvaluation;
 }
 export const GAME_STATUSES = [
   'IDLE',
@@ -41,4 +46,5 @@ export interface GameState {
   readonly confirmedOptionId: string | null;
   readonly holdProgress: number;
   readonly error: string | null;
+  readonly evaluation: AnswerEvaluation | null;
 }

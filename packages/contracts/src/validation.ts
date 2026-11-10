@@ -89,3 +89,7 @@ export const submitAnswerRequestSchema = z.object({
   selectedOptionId: id,
   attemptId: id.optional(),
 });
+export const answerEvaluationSchema = z.object({
+  isCorrect: z.boolean(),
+  correctOptionId: id,
+});

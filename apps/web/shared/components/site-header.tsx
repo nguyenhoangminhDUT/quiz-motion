@@ -12,6 +12,9 @@ export function SiteHeader({ playground = false }: { playground?: boolean }) {
         <span className="version">/ 0.1</span>
       </Link>
       <nav aria-label="Main navigation">
+        <Link href="/play">
+          Play <ArrowUpRight size={16} aria-hidden="true" />
+        </Link>
         <span className="environment">
           <span className="status-dot" /> PHASE 0
         </span>

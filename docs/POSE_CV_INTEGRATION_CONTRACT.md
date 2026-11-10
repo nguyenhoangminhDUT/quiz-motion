@@ -4,6 +4,11 @@ Tài liệu này chốt contract tích hợp giữa Pose/CV, UI và Game Engine 
 
 ## 1. Source of truth
 
+Luồng sử dụng chính thức của contract hiện có tại `/play`, được nối qua
+`apps/web/composition/camera-game-runtime.ts` và `camera-game-client.tsx`.
+Camera/MediaPipe dùng thật; câu hỏi và submission tạm dùng mock. Chạy `npm run dev`
+là đủ để mở màn chơi, không cần mở `/pose-debug` hay chạy backend.
+
 - Shared types và validation: `packages/contracts/src`
 - Pose Engine port: `apps/web/features/pose/application/ports/pose-engine.ts`
 - Pose implementation: `apps/web/features/pose`

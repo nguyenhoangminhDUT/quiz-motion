@@ -170,7 +170,13 @@ describe('development playground integration', () => {
     expect(
       screen.getByRole('img', { name: 'Sample pose: Y-Pose' }),
     ).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /Load next/ }));
+    for (
+      let remaining = 1;
+      remaining < runtime.getQuestionCount();
+      remaining += 1
+    ) {
+      fireEvent.click(screen.getByRole('button', { name: /Load next/ }));
+    }
     expect(runtime.gameStore.getState().actionConfig).toBe(mapping);
     const emit = vi.spyOn(runtime, 'emitAction');
     unmount();
