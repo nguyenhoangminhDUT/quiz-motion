@@ -13,6 +13,7 @@ const initialState: GameState = {
   confirmedOptionId: null,
   holdProgress: 0,
   error: null,
+  evaluation: null,
 };
 export function createGameStore() {
   return createStore<GameState>(() => ({ ...initialState }));

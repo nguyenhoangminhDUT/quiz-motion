@@ -16,8 +16,8 @@ const modules = [
     owner: 'Huy',
     icon: ScanLine,
     description: 'Turn movement into a shared language.',
-    detail: 'Engine port, lifecycle & manual pose events',
-    status: 'MOCK ADAPTER',
+    detail: 'Live camera, MediaPipe & eight-action recognition',
+    status: 'CAMERA READY',
   },
   {
     number: '02',
@@ -25,8 +25,8 @@ const modules = [
     owner: 'Dũng',
     icon: Layers3,
     description: 'Make every action feel clear.',
-    detail: 'Viewport, action instructions & progress UI',
-    status: 'UI FOUNDATION',
+    detail: 'Live video, skeleton, instructions & hold progress',
+    status: 'GAMEPLAY UI',
   },
   {
     number: '03',
@@ -34,8 +34,8 @@ const modules = [
     owner: 'Bình',
     icon: Workflow,
     description: 'Connect questions, actions and answers.',
-    detail: 'Quiz gateway, fixtures & typed state',
-    status: 'MOCK ADAPTER',
+    detail: 'Random action mapping, 1.5-second hold & mock quiz',
+    status: 'MOCK QUIZ',
   },
 ];
 export default function HomePage() {
@@ -60,14 +60,17 @@ export default function HomePage() {
               foundation for an experience that gets everyone moving.
             </p>
             <div className="hero-actions">
+              <Link className="primary-button" href="/play">
+                Play with camera <ArrowRight size={18} aria-hidden="true" />
+              </Link>
               {process.env.NODE_ENV === 'development' && (
-                <Link className="primary-button" href="/playground">
+                <Link className="secondary-button" href="/playground">
                   Open development playground{' '}
                   <ArrowRight size={18} aria-hidden="true" />
                 </Link>
               )}
               <span className="muted text-sm">
-                Phase 0 / Project initialization
+                Live camera / Sample questions
               </span>
             </div>
           </div>
@@ -170,13 +173,14 @@ export default function HomePage() {
           </div>
           <div>
             <p>
-              The application runs entirely on mock adapters. The playground
-              connects pose events to the interface and validates module
-              contracts.
+              Play with your camera directly in the game. Match an answer’s pose
+              and hold it for 1.5 seconds to confirm. Sample questions and
+              answer submissions run locally with mock data.
             </p>
             <p className="muted">
-              Coming next: MediaPipe classifiers, camera and Canvas rendering,
-              1500 ms hold detection, and Quiz API integration.
+              Camera recognition runs in your browser. The development
+              playground remains available for simulation. Scoring and Quiz API
+              integration are coming next.
             </p>
             <div className="stack">
               {[

@@ -48,13 +48,18 @@ first-four-action fixture mapping. Play game (mock) uses the injected-RNG random
 restart or revisiting a question starts a new attempt and randomizes again.
 
 SubmitAnswerRequest contains questionId, selectedOptionId and optional attemptId.
-SubmissionResult contains those IDs and submissionId. The mock only acknowledges an
-in-memory submission; there is no scoring, HTTP persistence or correct-answer field.
+SubmissionResult contains those IDs and submissionId, plus optional
+`evaluation: { isCorrect: boolean; correctOptionId: string }`. MockQuizGateway grades
+its 10 practice questions and reveals evaluation only on submission; loaded
+QuizQuestion objects contain no answer key. Game Session validates the evaluation
+against the current option IDs and submitted selection. Older receipt-only gateways
+can omit evaluation and remain supported. There is no HTTP persistence.
 
 ## GameState
 
 Fields: status, question, actionConfig, candidateOptionId, confirmedOptionId,
-holdProgress and error. Progress uses [0,1]. Status vocabulary:
+holdProgress, error and evaluation. Evaluation is null until a graded submission
+succeeds and resets on every question/attempt change. Progress uses [0,1]. Status vocabulary:
 IDLE, READY, DETECTING, HOLDING, SUBMITTING, SUBMITTED, ERROR.
 
 UI preview's fixture store uses IDLE/READY. The game session implements all statuses
@@ -108,6 +113,10 @@ submitAnswer(SubmitAnswerRequest): Promise<SubmissionResult>.
 The mock returns fresh validated fixtures and rejects unknown questions/options.
 Selected option IDs, never action IDs, go through submission. There is no assumed HTTP URL.
 The load use case validates question count and unique question IDs independently of adapters.
+
+The camera composition starts a 3000 ms result countdown only after SUBMITTED with
+evaluation. Its scheduler advances the question once the deadline is reached;
+pose frames do not extend that deadline. Manual question changes and disposal cancel it.
 
 ## Versioning and review
 

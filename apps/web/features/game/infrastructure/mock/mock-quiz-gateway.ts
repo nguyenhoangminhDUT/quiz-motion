@@ -8,7 +8,7 @@ import {
 import type { QuizGateway } from '../../application/ports/quiz-gateway';
 import { MOCK_QUESTIONS } from './quiz-fixtures';
 
-/** In-memory adapter only. Acceptance is not scoring or server persistence. */
+/** Local practice grading only; answer keys stay in this adapter's fixtures. */
 export class MockQuizGateway implements QuizGateway {
   private submissionCount = 0;
   async loadQuestions(): Promise<readonly QuizQuestion[]> {
@@ -28,6 +28,10 @@ export class MockQuizGateway implements QuizGateway {
       questionId: valid.questionId,
       selectedOptionId: valid.selectedOptionId,
       submissionId: 'mock-submission-' + this.submissionCount,
+      evaluation: {
+        isCorrect: valid.selectedOptionId === question.correctOptionId,
+        correctOptionId: question.correctOptionId,
+      },
     };
   }
 }

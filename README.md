@@ -4,10 +4,13 @@ A body-powered quiz foundation. The mock game assigns four distinct actions from
 an eight-action pool to four options, then requires a continuous 1500 ms pose hold
 before confirming and submitting an answer.
 
-**Current status: project foundation and mock gameplay implemented.** Working home page,
-development playground, shared contracts, ports, randomization, continuous hold detection
-and mock submission, plus the backend/database extension described below.
-Webcam inference, classifiers, scoring and production Quiz API calls are TODO.
+**Current status: live camera gameplay with mock quiz data.** The `/play` screen
+connects browser MediaPipe recognition to the game session, including randomized
+action mapping, continuous 1500 ms holds and in-memory answer submission.
+Ten mock questions provide correct/incorrect feedback and reveal the correct answer;
+the camera game advances automatically after a 3-second result countdown.
+The development playground and pose debug page remain available for isolated checks.
+Session score totals, persistence and production Quiz API calls are TODO.
 
 ## Quick start
 
@@ -20,14 +23,36 @@ npm ci
 npm run dev
 ```
 
-Open http://localhost:3000 and http://localhost:3000/playground.
+Open http://localhost:3000 and choose **Play with camera**, or go directly to
+http://localhost:3000/play. Click **Enable camera** and allow browser camera access.
+Match the pose beside an answer and hold it for 1.5 seconds to submit. The game
+shows whether you were correct, highlights the correct answer and advances after
+3 seconds. **Next question** also allows manual skipping. The 10-question practice
+set repeats after the last question. Questions and submissions use mocks; no backend, Docker, Python,
+API key or separate pose process is needed. Model and WASM assets are served locally.
+`npm run dev` is the only command needed after dependencies are installed.
+
+Camera frames are processed in the browser. Camera access requires localhost or HTTPS.
+The camera closes when you switch away from the tab or leave the game; enable it
+again when you return. Permission, missing-camera and inference errors support retry.
+Correctness is graded locally by the mock gateway. There is no persistent storage.
+The compact `/play` layout shows answers in a 2×2 grid, with a smaller camera on
+short screens and phones. Content can still scroll on very small screens or with
+increased browser zoom.
+
+http://localhost:3000/playground offers keyboard/button simulation without a camera.
+http://localhost:3000/pose-debug is an optional recognition diagnostic, independent
+of gameplay. Both diagnostic routes are development-only; `/play` also works in
+production builds.
 On Windows PowerShell, use **npm.cmd** if execution policy blocks npm.ps1.
 No execution policy change or Bash hooks are needed.
 
 Mock mode works without an env file. Optional: copy root .env.example to
 **apps/web/.env.local**. Next reads env at the app root, not the monorepo root.
-Only NEXT_PUBLIC_POSE_PROVIDER=mock and NEXT_PUBLIC_QUIZ_PROVIDER=mock are supported;
-unimplemented providers fail explicitly. Never put secrets in public variables.
+The playground accepts only NEXT_PUBLIC_POSE_PROVIDER=mock and
+NEXT_PUBLIC_QUIZ_PROVIDER=mock; unimplemented providers fail explicitly there.
+`/play` explicitly uses real MediaPipe input and MockQuizGateway, independent of
+these playground settings. Never put secrets in public variables.
 
 ## Commands
 
@@ -48,14 +73,14 @@ unimplemented providers fail explicitly. Never put secrets in public variables.
 Next.js App Router, React, TypeScript strict, Tailwind CSS, Zustand, Zod, Lucide React,
 Vitest and RTL. Npm workspaces share one root package-lock.json. Exact versions are
 in manifests/lockfile. TypeScript 6.0.x is selected for parser compatibility; ESLint 10 uses compatible
-Next, TypeScript and React Hooks plugins directly. MediaPipe is intentionally deferred until it is used.
+Next, TypeScript and React Hooks plugins directly. MediaPipe Tasks Vision runs in the browser.
 
 ```text
 apps/web/
   app/                 Routes, layout and global CSS
   composition/         Concrete wiring and playground integration
   features/
-    pose/              Pure domain, engine port, mock, MediaPipe TODO
+    pose/              Pure domain, engine port, mock and browser MediaPipe
     experience/        Viewport, overlay, instructions and progress presentation
     game/              Domain, use cases, gateway, mocks and per-instance store
   shared/              Common config and components
@@ -93,10 +118,11 @@ the Canvas skeleton preview uses eight hand-authored landmark samples with mirro
 and partial-body controls. Experience simulation also covers camera/tracking errors,
 manual progress, confirmation/submission feedback and optional sound, without changing
 the game store or making submission requests. See [Experience QA](docs/EXPERIENCE_QA.md).
-Live video and model-driven landmarks remain future work.
+The `/play` screen supplies live video and model-driven landmarks to the same
+presentation components through a separate camera gameplay runtime.
 
-Next: MediaPipe/classifiers, camera alignment, real game input, Quiz API, then
-QA/performance. No FPS or inference latency has been benchmarked.
+Next: real-camera recognition QA, Quiz API, session score totals and performance measurement.
+No FPS or inference latency has been benchmarked.
 
 Read [Architecture](docs/ARCHITECTURE.md), [Contracts](docs/MODULE_CONTRACTS.md),
 [Development](docs/DEVELOPMENT.md), [Roadmap](docs/ROADMAP.md),

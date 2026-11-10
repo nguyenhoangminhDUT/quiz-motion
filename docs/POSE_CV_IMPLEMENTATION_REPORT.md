@@ -1,5 +1,34 @@
 # Báo cáo triển khai module Pose/CV
 
+## Cập nhật tích hợp màn chơi
+
+Màn `/play` đã nối camera và MediaPipe với Game Session, dùng câu hỏi và gửi đáp án
+qua `MockQuizGateway`. Chạy `npm run dev`, mở trang chủ, chọn **Play with camera**,
+sau đó **Enable camera** và cấp quyền camera. Không cần mở `/pose-debug` hoặc chạy
+backend. Màn chơi cũng được đưa vào production build.
+
+Luồng tích hợp nằm tại `apps/web/composition/camera-game-runtime.ts` và
+`camera-game-client.tsx`: khởi tạo engine, gắn stream, phát video, đợi frame giải mã,
+gắn video vào engine rồi bắt đầu nhận diện. `POSE_UPDATED` chuyển frame cho
+`session.processFrame(frame, generation)` theo contract hiện có. UI dùng cùng frame
+để vẽ skeleton; mirror chỉ áp dụng khi hiển thị video và skeleton.
+
+Game Session giữ nguyên kiểm tra confidence, tracking, ánh xạ action, thời gian giữ
+1500 ms và khóa gửi đáp án. Watchdog reset tiến độ khi không nhận được frame trong
+hơn 250 ms. Đổi câu hỏi reset tiến độ và bỏ qua frame cũ. Khi camera bị đóng, lỗi,
+đổi tab hoặc rời trang, tài nguyên được giải phóng; có thể bật camera hoặc thử lại.
+Hủy trong khi khởi tạo cũng không cho phép engine đã dispose tiếp tục chạy.
+
+Mock hiện có 10 câu hỏi. Khi gửi đáp án thành công, Game Session nhận `evaluation`
+gồm `isCorrect` và `correctOptionId`; UI thông báo đúng/sai, tô xanh đáp án đúng và
+tô đỏ lựa chọn sai. Sau 3 giây, màn chơi tự chuyển câu mà không cần khởi động lại
+camera. Đổi câu thủ công hoặc dispose sẽ hủy countdown cũ. Bộ câu hỏi lặp lại sau
+câu thứ 10. Bố cục camera game dùng lưới đáp án 2×2 và thu gọn theo chiều cao màn hình.
+
+Các phần dưới mô tả module Pose/CV và giai đoạn triển khai ban đầu. Việc tích hợp
+màn chơi từng được liệt kê là bước tiếp theo nay đã hoàn thành; kiểm thử nhận diện
+với camera thực tế, hiệu chỉnh ngưỡng, tổng điểm và Quiz API vẫn còn cần thực hiện.
+
 ## 1. Tổng quan
 
 Module Pose/CV phía web đã được triển khai để lấy hình ảnh từ camera, nhận diện tư thế cơ thể bằng MediaPipe và chuyển kết quả thành một trong 8 hành động quy ước của hệ thống.
@@ -105,11 +134,11 @@ Các nhóm kiểm thử tự động đã có cho geometry, classifiers, action 
 - Ngưỡng nhận diện ban đầu được xây dựng và kiểm tra bằng fixture tổng hợp; chưa có bộ dữ liệu camera thực tế được gắn nhãn để đánh giá độ chính xác định lượng.
 - Kết quả có thể thay đổi theo khoảng cách tới camera, góc quay, ánh sáng, mức độ che khuất và việc cơ thể có nằm đủ trong khung hình hay không.
 - Cần kiểm thử thực tế với nhiều người và nhiều môi trường, sau đó điều chỉnh các ngưỡng hình học nếu phát hiện false positive hoặc false negative.
-- Cấu hình lựa chọn real Pose Engine trong luồng production và kết nối `POSE_UPDATED` với Game Session vẫn là bước tích hợp tiếp theo.
+- Màn `/play` chọn real Pose Engine và đã kết nối `POSE_UPDATED` với Game Session; mock đã chấm đúng/sai từng câu, chưa có tổng điểm hay lưu trữ server.
 
-## 7. Bước tiếp theo khi tích hợp
+## 7. Trạng thái các bước tích hợp
 
-1. UI tạo và phát video từ `getMediaStream()`, sau đó truyền video cho Pose Engine bằng `attachVideo()`.
-2. UI hiển thị camera status và hướng dẫn người chơi đứng đúng vị trí.
-3. Game Engine subscribe `POSE_UPDATED`, xử lý thời gian giữ động tác và ánh xạ action với đáp án.
-4. Cả nhóm kiểm thử end-to-end trên màn chơi thật và ghi lại các trường hợp nhận sai để hiệu chỉnh classifier.
+1. Đã có: UI tạo và phát video từ `getMediaStream()`, sau đó truyền video bằng `attachVideo()`.
+2. Đã có: hiển thị camera status, lỗi có thể thử lại và hướng dẫn vị trí đứng.
+3. Đã có: tầng composition subscribe `POSE_UPDATED`, chuyển cho Game Session xử lý giữ động tác và ánh xạ đáp án.
+4. Cần tiếp tục: cả nhóm thử camera thực tế trên màn `/play`, ghi lại các trường hợp nhận sai để hiệu chỉnh classifier.

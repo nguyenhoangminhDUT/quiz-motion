@@ -149,6 +149,39 @@ function deferred<T>() {
 }
 
 describe('game session edge cases', () => {
+  it('stores grading from the gateway and clears it when the question changes', async () => {
+    const { session, generation } = setupSession(async (request) => ({
+      ...request,
+      submissionId: 'graded',
+      evaluation: { isCorrect: false, correctOptionId: 'option-two' },
+    }));
+    await holdBeforeConfirmation(session, generation);
+    await session.processFrame(trackingFrame(1500), generation);
+    expect(session.getState().evaluation).toEqual({
+      isCorrect: false,
+      correctOptionId: 'option-two',
+    });
+    session.selectQuestion(question);
+    expect(session.getState().evaluation).toBeNull();
+  });
+
+  it.each([
+    { isCorrect: true, correctOptionId: 'option-two' },
+    { isCorrect: false, correctOptionId: 'missing' },
+  ])('rejects inconsistent answer evaluation %j', async (evaluation) => {
+    const { session, generation } = setupSession(async (request) => ({
+      ...request,
+      submissionId: 'invalid-grade',
+      evaluation,
+    }));
+    await holdBeforeConfirmation(session, generation);
+    await session.processFrame(trackingFrame(1500), generation);
+    expect(session.getState()).toMatchObject({
+      status: 'ERROR',
+      evaluation: null,
+    });
+  });
+
   it('keeps the confirmed answer and reports submission failure', async () => {
     const submitAnswer = vi.fn<QuizGateway['submitAnswer']>(async () => {
       throw new Error('Network unavailable');
